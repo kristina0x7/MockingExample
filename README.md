@@ -1,12 +1,12 @@
 # 🚀🌌 Kitty Booking System – Space Edition 🌌🚀
 
-<div style="display: flex; align-items: flex-start;">
+<table>
+<tr>
+<td>
 
-<div style="flex: 1; padding-right: 20px;">
-
-Welcome to **Kitty Booking System**, Lab 2 at ITHS Java! 🐱<br>
+Welcome to **Kitty Booking System**, Lab 2 at ITHS Java! 🐱🌌<br>
 This project demonstrates **TDD, unit testing, and testable architecture** for booking and payment systems.<br>
-We implement **mocking, dependency injection, and reliable design patterns** in a clean, maintainable way.<br><br>
+We implement **mocking, dependency injection, and reliable design patterns**.<br><br>
 
 ## 🌟 About the Project
 
@@ -16,13 +16,14 @@ It includes modules for:
 - 💳 **PaymentProcessor:** Testable payment handling
 - 🛒 **ShoppingCart:** TDD-driven implementation with total price, discounts, and quantity updates
 
-</div>
+</td>
+<td>
 
-<div>
-<img src="assets/BookingCat.png" width="230px" />
-</div>
+<img src="assets/BookingCat.png" width="250px" />
 
-</div>
+</td>
+</tr>
+</table>
 
 ---
 
