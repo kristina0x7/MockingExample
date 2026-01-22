@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -43,7 +44,7 @@ class BookingSystemTest {
     private Room room;
 
     @BeforeEach
-    @DisplayName("Initializing testdata for each test")
+    @DisplayName("Förbered testdata och mock-inställningar")
     void setUp() {
         room = new Room(ROOM_ID, ROOM_NAME);
         when(timeProvider.getCurrentTime()).thenReturn(CURRENT_TIME);
@@ -58,5 +59,16 @@ class BookingSystemTest {
 
         assertThat(result).isTrue();
         verify(roomRepository).save(room);
+    }
+
+    @Test
+    @DisplayName("När starttiden är i dåtid - kasta IllegalArgumentException")
+    void bookRoom_withPastStartTime_ThrowsException() {
+        when(timeProvider.getCurrentTime()).thenReturn(CURRENT_TIME);
+
+        assertThatThrownBy(() ->
+                bookingSystem.bookRoom(ROOM_ID, PAST_TIME, FUTURE_END_TIME))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Kan inte boka tid i dåtid");
     }
 }
