@@ -1,14 +1,28 @@
 package com.example;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
+
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class BookingSystemTest {
+
+    private static final String ROOM_ID = "room1";
+    private static final String ROOM_NAME = "Room A";
+    private static final String BOOKING_ID = "booking1";
+
+    private static final LocalDateTime CURRENT_TIME = LocalDateTime.of(2026, 1, 7, 9, 0);
+    private static final LocalDateTime FUTURE_START_TIME = CURRENT_TIME.plusHours(1);
+    private static final LocalDateTime FUTURE_END_TIME = CURRENT_TIME.plusHours(2);
+    private static final LocalDateTime PAST_TIME = CURRENT_TIME.minusHours(1);
 
     @Mock
     TimeProvider timeProvider;
@@ -21,4 +35,13 @@ class BookingSystemTest {
 
     @InjectMocks
     BookingSystem bookingSystem;
+
+    private Room room;
+
+    @BeforeEach
+    @DisplayName("Initializing testdata for each test")
+    void setUp() {
+        room = new Room(ROOM_ID, ROOM_NAME);
+        when(timeProvider.getCurrentTime()).thenReturn(CURRENT_TIME);
+    }
 }
