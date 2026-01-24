@@ -45,4 +45,15 @@ class BookingTest {
         assertThatThrownBy(() -> new Booking("id", "room", validTime, null))
                 .isInstanceOf(IllegalArgumentException.class);
     }
+
+    @Test
+    @DisplayName("Booking med ogiltiga tider (slut före start) - kastar exception")
+    void constructor_WithInvalidTimes_ThrowsException() {
+        LocalDateTime start = LocalDateTime.of(2026, 1, 7, 11, 0);
+        LocalDateTime end = LocalDateTime.of(2026, 1, 7, 10, 0);
+
+        assertThatThrownBy(() -> new Booking("id", "room", start, end))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Sluttid måste vara efter starttid");
+    }
 }
