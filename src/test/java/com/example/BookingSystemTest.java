@@ -232,4 +232,27 @@ class BookingSystemTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Kan inte boka tid i dåtid");
     }
+
+    @Test
+    @DisplayName("Systemtid ändras under bokningens gång - ska validera mot originaltid")
+    void bookRoom_WhenSystemTimeChangesDuringExecution_ShouldUseConsistentTime() {
+        LocalDateTime[] times = {
+                LocalDateTime.of(2026, 1, 7, 10, 0),
+                LocalDateTime.of(2026, 1, 7, 9, 59),
+                LocalDateTime.of(2026, 1, 7, 10, 1)
+        };
+
+        when(timeProvider.getCurrentTime())
+                .thenReturn(times[0])
+                .thenReturn(times[1])
+                .thenReturn(times[2]);
+
+        when(roomRepository.findById(ROOM_ID)).thenReturn(Optional.of(room));
+
+        boolean result = bookingSystem.bookRoom(ROOM_ID,
+                LocalDateTime.of(2026, 1, 7, 11, 0),
+                LocalDateTime.of(2026, 1, 7, 12, 0));
+
+        assertThat(result).isTrue();
+    }
 }
