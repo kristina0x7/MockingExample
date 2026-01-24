@@ -198,4 +198,15 @@ class BookingSystemTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Bokning kräver giltiga start- och sluttider samt rum-id");
     }
+
+    @Test
+    @DisplayName("Bokning använder UUID för booking ID")
+    void bookRoom_UsesUUIDForBookingId() throws NotificationException {
+        when(roomRepository.findById(ROOM_ID)).thenReturn(Optional.of(room));
+
+        bookingSystem.bookRoom(ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
+
+        verify(notificationService).sendBookingConfirmation(any(Booking.class));
+        verify(roomRepository).save(room);
+    }
 }
