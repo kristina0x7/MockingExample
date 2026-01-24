@@ -14,12 +14,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class BookingSystemTest {
@@ -119,5 +119,25 @@ class BookingSystemTest {
                 bookingSystem.bookRoom(ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Rummet existerar inte");
+    }
+
+    @Test
+    @DisplayName("När rummet inte är tillgängligt - returnera false")
+    void bookRoom_WhenRoomNotAvailable_ReturnsFalse() {
+        Booking existingBooking = new Booking(
+                UUID.randomUUID().toString(),
+                ROOM_ID,
+                FUTURE_START_TIME,
+                FUTURE_END_TIME
+        );
+        room.addBooking(existingBooking);
+
+        when(roomRepository.findById(ROOM_ID)).thenReturn(Optional.of(room));
+
+        boolean result = bookingSystem.bookRoom(ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
+
+        assertThat(result).isFalse();
+
+        verify(roomRepository, never()).save(any(Room.class));
     }
 }
