@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 
 class BookingTest {
@@ -25,5 +26,23 @@ class BookingTest {
         assertThat(booking.getRoomId()).isEqualTo(roomId);
         assertThat(booking.getStartTime()).isEqualTo(start);
         assertThat(booking.getEndTime()).isEqualTo(end);
+    }
+
+    @Test
+    @DisplayName("Booking med null-värden - kastar exception")
+    void constructor_WithNullValues_ThrowsException() {
+        LocalDateTime validTime = LocalDateTime.now();
+
+        assertThatThrownBy(() -> new Booking(null, "room", validTime, validTime))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        assertThatThrownBy(() -> new Booking("id", null, validTime, validTime))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        assertThatThrownBy(() -> new Booking("id", "room", null, validTime))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        assertThatThrownBy(() -> new Booking("id", "room", validTime, null))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 }
