@@ -31,6 +31,7 @@ class BookingSystemTest {
     private static final String THIRD_ROOM_NAME = "Room C";
 
     private static final String NON_EXISTING_BOOKING_ID = "non existing booking ID";
+    private static final String FUTURE_BOOKING_ID = "future booking id";
 
     private static final LocalDateTime CURRENT_TIME = LocalDateTime.of(2026, 1, 7, 9, 0);
     private static final LocalDateTime FUTURE_START_TIME = CURRENT_TIME.plusHours(1);
@@ -384,6 +385,31 @@ class BookingSystemTest {
             assertThat(firstRoom.hasBooking(NON_EXISTING_BOOKING_ID)).isFalse();
             assertThat(secondRoom.hasBooking(NON_EXISTING_BOOKING_ID)).isFalse();
             assertThat(thirdRoom.hasBooking(NON_EXISTING_BOOKING_ID)).isFalse();
+        }
+
+        @Test
+        @DisplayName("Hittar och avbokar framtida bokning - returnera true")
+        void cancelBooking_FindsFutureBooking_ReturnsTrueAndCancels() throws NotificationException {
+
+            Booking futureBooking = new Booking(
+                    FUTURE_BOOKING_ID,
+                    ROOM_ID,
+                    FUTURE_START_TIME,
+                    FUTURE_END_TIME
+            );
+            firstRoom.addBooking(futureBooking);
+
+            List<Room> allRooms = List.of(firstRoom, secondRoom, thirdRoom);
+            when(roomRepository.findAll()).thenReturn(allRooms);
+
+            boolean result = bookingSystem.cancelBooking(FUTURE_BOOKING_ID);
+
+            assertThat(result).as("Ska returnera true när bokningen hittas och avbokas").isTrue();
+            verify(roomRepository).findAll();
+            verify(roomRepository).save(firstRoom);
+            verify(notificationService).sendCancellationConfirmation(futureBooking);
+
+            assertThat(firstRoom.hasBooking((FUTURE_BOOKING_ID))).isFalse();
         }
     }
 }
