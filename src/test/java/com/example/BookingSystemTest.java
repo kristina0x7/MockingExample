@@ -313,4 +313,16 @@ class BookingSystemTest {
 
         assertThat(result).isEmpty();
     }
+
+    @Test
+    @DisplayName("getAvailableRooms med båda rummen lediga - returnerar båda")
+    void getAvailableRooms_WithBothRoomsAvailable_ReturnsBoth() {
+        when(roomRepository.findAll()).thenReturn(Arrays.asList(room, otherRoom));
+
+        List<Room> result = bookingSystem.getAvailableRooms(FUTURE_START_TIME, FUTURE_END_TIME);
+
+        assertThat(result)
+                .hasSize(2)
+                .containsExactlyInAnyOrder(room, otherRoom);
+    }
 }
