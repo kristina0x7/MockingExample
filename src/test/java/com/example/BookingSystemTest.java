@@ -478,6 +478,31 @@ class BookingSystemTest {
             verify(notificationService).sendCancellationConfirmation(futureBooking);
         }
 
+        @Test
+        @DisplayName("Avbokning lyckas även om notifikation kastar NotificationException")
+        void cancelBooking_WhenNotificationThrowsNotificationException_StillReturnsTrue() throws NotificationException {
+            Booking futureBooking = new Booking(
+                    FUTURE_BOOKING_ID,
+                    ROOM_ID,
+                    FUTURE_START_TIME,
+                    FUTURE_END_TIME
+            );
+            firstRoom.addBooking(futureBooking);
+
+            List<Room> allRooms = List.of(firstRoom);
+            when(roomRepository.findAll()).thenReturn(allRooms);
+
+            doThrow(new NotificationException("Error"))
+                    .when(notificationService)
+                    .sendCancellationConfirmation(futureBooking);
+
+            boolean result = bookingSystem.cancelBooking(FUTURE_BOOKING_ID);
+
+            assertThat(result).isTrue();
+            verify(roomRepository).save(firstRoom);
+            verify(notificationService).sendCancellationConfirmation(futureBooking);
+        }
+
         @ParameterizedTest
         @MethodSource("multipleBookingsInDifferentRooms")
         @DisplayName("Avbokar endast den specifika bokningen från rätt rum")
