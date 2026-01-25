@@ -132,8 +132,6 @@ class BookingSystemTest {
         );
         room.addBooking(existingBooking);
 
-        when(roomRepository.findById(ROOM_ID)).thenReturn(Optional.of(room));
-
         boolean result = bookingSystem.bookRoom(ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
 
         assertThat(result).isFalse();
@@ -143,8 +141,6 @@ class BookingSystemTest {
     @Test
     @DisplayName("Lyckad bokning skickar notifikation")
     void bookRoom_SuccessfulBooking_SendsNotification() throws NotificationException {
-        when(roomRepository.findById(ROOM_ID)).thenReturn(Optional.of(room));
-
         boolean result = bookingSystem.bookRoom(ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
 
         assertThat(result).isTrue();
@@ -154,8 +150,6 @@ class BookingSystemTest {
     @Test
     @DisplayName("Bokning lyckas även om notifikation kastar NotificationException")
     void bookRoom_WhenNotificationThrowsNotificationException_StillReturnsTrue() throws NotificationException {
-        when(roomRepository.findById(ROOM_ID)).thenReturn(Optional.of(room));
-
         doThrow(new NotificationException("Error"))
                 .when(notificationService)
                 .sendBookingConfirmation(any(Booking.class));
@@ -170,8 +164,6 @@ class BookingSystemTest {
     @Test
     @DisplayName("Lyckad bokning sparar rummet i repository")
     void bookRoom_Successful_SavesRoomToRepository() {
-        when(roomRepository.findById(ROOM_ID)).thenReturn(Optional.of(room));
-
         boolean result = bookingSystem.bookRoom(ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
 
         assertThat(result).isTrue();
@@ -181,8 +173,6 @@ class BookingSystemTest {
     @Test
     @DisplayName("Lyckad bokning lägger till booking i rummet")
     void bookRoom_Successful_AddsBookingToRoom() throws NotificationException {
-        when(roomRepository.findById(ROOM_ID)).thenReturn(Optional.of(room));
-
         boolean result = bookingSystem.bookRoom(ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
 
         assertThat(result).isTrue();
@@ -203,8 +193,6 @@ class BookingSystemTest {
     @Test
     @DisplayName("Bokning använder UUID för booking ID")
     void bookRoom_UsesUUIDForBookingId() throws NotificationException {
-        when(roomRepository.findById(ROOM_ID)).thenReturn(Optional.of(room));
-
         bookingSystem.bookRoom(ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
 
         verify(notificationService).sendBookingConfirmation(any(Booking.class));
@@ -214,7 +202,6 @@ class BookingSystemTest {
     @Test
     @DisplayName("Bokning med starttid exakt nu - ska fungera")
     void bookRoom_WithStartTimeEqualToCurrentTime_ReturnsTrue() {
-        when(roomRepository.findById(ROOM_ID)).thenReturn(Optional.of(room));
         when(timeProvider.getCurrentTime()).thenReturn(FUTURE_START_TIME);
 
         boolean result = bookingSystem.bookRoom(ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
@@ -247,8 +234,6 @@ class BookingSystemTest {
                 .thenReturn(times[0])
                 .thenReturn(times[1])
                 .thenReturn(times[2]);
-
-        when(roomRepository.findById(ROOM_ID)).thenReturn(Optional.of(room));
 
         boolean result = bookingSystem.bookRoom(ROOM_ID,
                 LocalDateTime.of(2026, 1, 7, 11, 0),
