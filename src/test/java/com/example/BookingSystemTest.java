@@ -33,6 +33,7 @@ class BookingSystemTest {
     private static final String ONGOING_BOOKING_ID = "ongoing booking ID";
     private static final String NON_EXISTING_BOOKING_ID = "non existing booking ID";
     private static final String FUTURE_BOOKING_ID = "future booking ID";
+    private static final String OTHER_BOOKING_ID = "other booking ID";
 
     private static final LocalDateTime CURRENT_TIME = LocalDateTime.of(2026, 1, 7, 9, 0);
     private static final LocalDateTime FUTURE_START_TIME = CURRENT_TIME.plusHours(1);
@@ -477,30 +478,51 @@ class BookingSystemTest {
             verify(notificationService).sendCancellationConfirmation(futureBooking);
         }
 
-        @Test
-        @DisplayName("Avbokning lyckas även om notifikation kastar NotificationException")
-        void cancelBooking_WhenNotificationThrowsException_StillReturnsTrue() throws NotificationException {
-            Booking futureBooking = new Booking(
-                    FUTURE_BOOKING_ID,
-                    ROOM_ID,
-                    FUTURE_START_TIME,
-                    FUTURE_END_TIME
-            );
-            firstRoom.addBooking(futureBooking);
+        @ParameterizedTest
+        @MethodSource("multipleBookingsInDifferentRooms")
+        @DisplayName("Avbokar endast den specifika bokningen från rätt rum")
+        void cancelBooking_CancelsOnlySpecificBooking(
+                String bookingIdToCancel,
+                String expectedRoomId) {
 
-            List<Room> allRooms = List.of(firstRoom);
+            Booking booking1 = new Booking(FUTURE_BOOKING_ID, ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
+            Booking booking2 = new Booking(ONGOING_BOOKING_ID, SECOND_ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
+            Booking booking3 = new Booking(OTHER_BOOKING_ID, THIRD_ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
+
+            firstRoom.addBooking(booking1);
+            secondRoom.addBooking(booking2);
+            thirdRoom.addBooking(booking3);
+
+            List<Room> allRooms = List.of(firstRoom, secondRoom, thirdRoom);
             when(roomRepository.findAll()).thenReturn(allRooms);
 
-            doThrow(new NotificationException("Notification failed"))
-                    .when(notificationService)
-                    .sendCancellationConfirmation(any(Booking.class));
-
-            boolean result = bookingSystem.cancelBooking(FUTURE_BOOKING_ID);
+            boolean result = bookingSystem.cancelBooking(bookingIdToCancel);
 
             assertThat(result).isTrue();
-            verify(roomRepository).save(firstRoom);
-            verify(notificationService).sendCancellationConfirmation(any(Booking.class));
-            assertThat(firstRoom.hasBooking(FUTURE_BOOKING_ID)).isFalse();
+
+            Room expectedRoom = expectedRoomId.equals(ROOM_ID) ? firstRoom :
+                    expectedRoomId.equals(SECOND_ROOM_ID) ? secondRoom : thirdRoom;
+
+            verify(roomRepository).save(expectedRoom);
+
+            if (expectedRoom == firstRoom) {
+                verify(roomRepository, never()).save(secondRoom);
+                verify(roomRepository, never()).save(thirdRoom);
+            } else if (expectedRoom == secondRoom) {
+                verify(roomRepository, never()).save(firstRoom);
+                verify(roomRepository, never()).save(thirdRoom);
+            } else {
+                verify(roomRepository, never()).save(firstRoom);
+                verify(roomRepository, never()).save(secondRoom);
+            }
+        }
+
+        static Stream<Arguments> multipleBookingsInDifferentRooms() {
+            return Stream.of(
+                    Arguments.of(FUTURE_BOOKING_ID, ROOM_ID),
+                    Arguments.of(ONGOING_BOOKING_ID, SECOND_ROOM_ID),
+                    Arguments.of(OTHER_BOOKING_ID, THIRD_ROOM_ID)
+            );
         }
     }
 }
