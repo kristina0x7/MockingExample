@@ -30,8 +30,9 @@ class BookingSystemTest {
     private static final String THIRD_ROOM_ID = "room 3";
     private static final String THIRD_ROOM_NAME = "Room C";
 
+    private static final String ONGOING_BOOKING_ID = "ongoing booking ID";
     private static final String NON_EXISTING_BOOKING_ID = "non existing booking ID";
-    private static final String FUTURE_BOOKING_ID = "future booking id";
+    private static final String FUTURE_BOOKING_ID = "future booking ID";
 
     private static final LocalDateTime CURRENT_TIME = LocalDateTime.of(2026, 1, 7, 9, 0);
     private static final LocalDateTime FUTURE_START_TIME = CURRENT_TIME.plusHours(1);
@@ -410,6 +411,29 @@ class BookingSystemTest {
             verify(notificationService).sendCancellationConfirmation(futureBooking);
 
             assertThat(firstRoom.hasBooking((FUTURE_BOOKING_ID))).isFalse();
+        }
+
+        @Test
+        @DisplayName("Försöker avboka pågående bokning - kasta IllegalStateException")
+        void cancelBooking_AttemptToCancelOngoingBooking_ThrowsException() throws NotificationException {
+            Booking ongoingBooking = new Booking(
+                    ONGOING_BOOKING_ID,
+                    ROOM_ID,
+                    PAST_TIME,
+                    FUTURE_END_TIME
+            );
+            firstRoom.addBooking(ongoingBooking);
+
+            List<Room> allRooms = List.of(firstRoom, secondRoom, thirdRoom);
+            when(roomRepository.findAll()).thenReturn(allRooms);
+
+            assertThatThrownBy(() -> bookingSystem.cancelBooking(ONGOING_BOOKING_ID))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessage("Kan inte avboka påbörjad eller avslutad bokning");
+
+            verify(roomRepository, never()).save(any(Room.class));
+            verify(notificationService, never()).sendCancellationConfirmation(any(Booking.class));
+            assertThat(firstRoom.hasBooking(ONGOING_BOOKING_ID)).isTrue();
         }
     }
 }
