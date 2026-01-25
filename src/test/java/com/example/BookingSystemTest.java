@@ -325,4 +325,17 @@ class BookingSystemTest {
                 .hasSize(2)
                 .containsExactlyInAnyOrder(room, otherRoom);
     }
+
+    @Test
+    @DisplayName("getAvailableRooms med båda rummen upptagna - returnerar tom lista")
+    void getAvailableRooms_WithBothRoomsBooked_ReturnsEmpty() {
+        room.addBooking(new Booking("b1", ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME));
+        otherRoom.addBooking(new Booking("b2", OTHER_ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME));
+
+        when(roomRepository.findAll()).thenReturn(Arrays.asList(room, otherRoom));
+
+        List<Room> result = bookingSystem.getAvailableRooms(FUTURE_START_TIME, FUTURE_END_TIME);
+
+        assertThat(result).isEmpty();
+    }
 }
