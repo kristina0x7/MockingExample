@@ -283,4 +283,24 @@ class BookingSystemTest {
 
         verify(roomRepository).findAll();
     }
+
+    @Test
+    @DisplayName("getAvailableRooms returnerar filtrerad lista")
+    void getAvailableRooms_ReturnsFilteredList() {
+        otherRoom.addBooking(new Booking(
+                "test-uuid-123",
+                OTHER_ROOM_ID,
+                FUTURE_START_TIME,
+                FUTURE_END_TIME
+        ));
+
+        when(roomRepository.findAll()).thenReturn(Arrays.asList(room, otherRoom));
+
+        List<Room> result = bookingSystem.getAvailableRooms(FUTURE_START_TIME, FUTURE_END_TIME);
+
+        assertThat(result)
+                .hasSize(1)
+                .containsExactly(room)
+                .doesNotContain(otherRoom);
+    }
 }
