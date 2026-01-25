@@ -354,5 +354,12 @@ class BookingSystemTest {
     @DisplayName("cancelBooking metoden")
     class CancelBookingTests {
 
+        @Test
+        @DisplayName("När boknings-id är null - kasta IllegalArgumentException")
+        void cancelBooking_WithNullBookingId_ThrowsException() {
+            assertThatThrownBy(() -> bookingSystem.cancelBooking(null))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("Boknings-id kan inte vara null");
+        }
     }
 }
