@@ -75,7 +75,7 @@ class BookingSystemTest {
 
         @ParameterizedTest
         @MethodSource("bookRoomNullTestCases")
-        @DisplayName("bookRoom - med null parametrar - kastar IllegalArgumentException")
+        @DisplayName("När någon parameter är null - kasta IllegalArgumentException")
         void bookRoom_WithAnyNullParameter_ThrowsException(
                 String roomId, LocalDateTime startTime, LocalDateTime endTime) {
 
@@ -155,7 +155,7 @@ class BookingSystemTest {
         }
 
         @Test
-        @DisplayName("Lyckad bokning skickar notifikation")
+        @DisplayName("När bokning lyckas - skicka notifikation")
         void bookRoom_SuccessfulBooking_SendsNotification() throws NotificationException {
             boolean result = bookingSystem.bookRoom(ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
 
@@ -178,7 +178,7 @@ class BookingSystemTest {
         }
 
         @Test
-        @DisplayName("Lyckad bokning sparar rummet i repository")
+        @DisplayName("När bokning lyckas - spara rum i repository")
         void bookRoom_Successful_SavesRoomToRepository() {
             boolean result = bookingSystem.bookRoom(ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
 
@@ -187,7 +187,7 @@ class BookingSystemTest {
         }
 
         @Test
-        @DisplayName("Lyckad bokning lägger till booking i rummet")
+        @DisplayName("När bokning lyckas - lägg till bokning i rum")
         void bookRoom_Successful_AddsBookingToRoom() throws NotificationException {
             boolean result = bookingSystem.bookRoom(ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
 
@@ -198,7 +198,7 @@ class BookingSystemTest {
         }
 
         @Test
-        @DisplayName("Validering sker i rätt ordning - null check först")
+        @DisplayName("Validerar null före tidskontroll")
         void bookRoom_ValidationOrder_NullCheckBeforeTimeCheck() {
             assertThatThrownBy(() ->
                     bookingSystem.bookRoom(null, PAST_TIME, FUTURE_END_TIME))
@@ -207,7 +207,7 @@ class BookingSystemTest {
         }
 
         @Test
-        @DisplayName("Bokning använder UUID för booking ID")
+        @DisplayName("Använder UUID för boknings-id")
         void bookRoom_UsesUUIDForBookingId() throws NotificationException {
             bookingSystem.bookRoom(ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
 
@@ -216,7 +216,7 @@ class BookingSystemTest {
         }
 
         @Test
-        @DisplayName("Bokning med starttid exakt nu - ska fungera")
+        @DisplayName("När starttid är exakt nu - acceptera bokning")
         void bookRoom_WithStartTimeEqualToCurrentTime_ReturnsTrue() {
             when(timeProvider.getCurrentTime()).thenReturn(FUTURE_START_TIME);
 
@@ -226,7 +226,7 @@ class BookingSystemTest {
         }
 
         @Test
-        @DisplayName("Bokning som börjar 1 nanosekund i dåtid - kastar exception (ha-ha)")
+        @DisplayName("När starttid är 1 nanosekund i dåtid - kasta exception")
         void bookRoom_OneNanosecondInPast_ThrowsException() {
             LocalDateTime oneNanosecondPast = CURRENT_TIME.minusNanos(1);
             LocalDateTime future = CURRENT_TIME.plusHours(1);
@@ -265,7 +265,7 @@ class BookingSystemTest {
 
         @ParameterizedTest
         @MethodSource("getAvailableRoomsNullTestCases")
-        @DisplayName("getAvailableRooms - med null parametrar - kastar IllegalArgumentException")
+        @DisplayName("När start- eller sluttid är null - kasta IllegalArgumentException")
         void getAvailableRooms_WithNullParameters_ThrowsException(
                 LocalDateTime startTime, LocalDateTime endTime) {
 
@@ -285,7 +285,7 @@ class BookingSystemTest {
         }
 
         @Test
-        @DisplayName("getAvailableRooms med sluttid före starttid - kastar exception")
+        @DisplayName("När sluttid är före starttid - kasta exception")
         void getAvailableRooms_WithEndTimeBeforeStart_ThrowsException() {
             assertThatThrownBy(() -> bookingSystem.getAvailableRooms(FUTURE_END_TIME, FUTURE_START_TIME))
                     .isInstanceOf(IllegalArgumentException.class)
@@ -293,7 +293,7 @@ class BookingSystemTest {
         }
 
         @Test
-        @DisplayName("getAvailableRooms anropar roomRepository.findAll()")
+        @DisplayName("Anropar roomRepository.findAll() för att hämta alla rum")
         void getAvailableRooms_CallsRepositoryFindAll() {
 
             when(roomRepository.findAll()).thenReturn(Collections.emptyList());
@@ -304,7 +304,7 @@ class BookingSystemTest {
         }
 
         @Test
-        @DisplayName("getAvailableRooms returnerar filtrerad lista")
+        @DisplayName("Returnerar filtrerad lista på lediga rum under angiven tid")
         void getAvailableRooms_ReturnsFilteredList() {
             secondRoom.addBooking(new Booking(
                     "test-uuid-123",
@@ -324,7 +324,7 @@ class BookingSystemTest {
         }
 
         @Test
-        @DisplayName("getAvailableRooms med tom repository - returnerar tom lista")
+        @DisplayName("När repository är tomt - returnerar tom lista")
         void getAvailableRooms_WithEmptyRepository_ReturnsEmptyList() {
             when(roomRepository.findAll()).thenReturn(Collections.emptyList());
 
@@ -334,7 +334,7 @@ class BookingSystemTest {
         }
 
         @Test
-        @DisplayName("getAvailableRooms med båda rummen lediga - returnerar båda")
+        @DisplayName("När alla rum är lediga - returnerar alla rum")
         void getAvailableRooms_WithBothRoomsAvailable_ReturnsBoth() {
             when(roomRepository.findAll()).thenReturn(Arrays.asList(firstRoom, secondRoom));
 
@@ -346,7 +346,7 @@ class BookingSystemTest {
         }
 
         @Test
-        @DisplayName("getAvailableRooms med båda rummen upptagna - returnerar tom lista")
+        @DisplayName("När alla rum är upptagna - returnerar tom lista")
         void getAvailableRooms_WithBothRoomsBooked_ReturnsEmpty() {
             firstRoom.addBooking(new Booking("b1", ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME));
             secondRoom.addBooking(new Booking("b2", SECOND_ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME));
@@ -390,7 +390,7 @@ class BookingSystemTest {
         }
 
         @Test
-        @DisplayName("Hittar och avbokar framtida bokning - returnera true")
+        @DisplayName("När framtida bokning hittas - avboka och returnera true")
         void cancelBooking_FindsFutureBooking_ReturnsTrueAndCancels() throws NotificationException {
 
             Booking futureBooking = new Booking(
@@ -415,7 +415,7 @@ class BookingSystemTest {
         }
 
         @Test
-        @DisplayName("Försöker avboka pågående bokning - kasta IllegalStateException")
+        @DisplayName("När pågående bokning avbokas - kasta IllegalStateException")
         void cancelBooking_AttemptToCancelOngoingBooking_ThrowsException() throws NotificationException {
             Booking ongoingBooking = new Booking(
                     ONGOING_BOOKING_ID,
@@ -505,7 +505,7 @@ class BookingSystemTest {
 
         @ParameterizedTest
         @MethodSource("multipleBookingsInDifferentRooms")
-        @DisplayName("Avbokar endast den specifika bokningen från rätt rum")
+        @DisplayName("Avbokning påverkar endast specifikt rum")
         void cancelBooking_CancelsOnlySpecificBooking(
                 String bookingIdToCancel,
                 String expectedRoomId) {
