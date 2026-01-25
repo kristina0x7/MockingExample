@@ -286,4 +286,15 @@ class BookingSystemTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Sluttid måste vara efter starttid");
     }
+
+    @Test
+    @DisplayName("getAvailableRooms anropar roomRepository.findAll()")
+    void getAvailableRooms_CallsRepositoryFindAll() {
+
+        when(roomRepository.findAll()).thenReturn(Collections.emptyList());
+
+        bookingSystem.getAvailableRooms(FUTURE_START_TIME, FUTURE_END_TIME);
+
+        verify(roomRepository).findAll();
+    }
 }
