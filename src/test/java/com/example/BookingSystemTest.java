@@ -25,8 +25,12 @@ class BookingSystemTest {
 
     private static final String ROOM_ID = "room 1";
     private static final String ROOM_NAME = "Room A";
-    private static final String OTHER_ROOM_ID = "room 2";
-    private static final String OTHER_ROOM_NAME = "Room B";
+    private static final String SECOND_ROOM_ID = "room 2";
+    private static final String SECOND_ROOM_NAME = "Room B";
+    private static final String THIRD_ROOM_ID = "room 3";
+    private static final String THIRD_ROOM_NAME = "Room C";
+
+    private static final String NON_EXISTING_BOOKING_ID = "non existing booking ID";
 
     private static final LocalDateTime CURRENT_TIME = LocalDateTime.of(2026, 1, 7, 9, 0);
     private static final LocalDateTime FUTURE_START_TIME = CURRENT_TIME.plusHours(1);
@@ -46,18 +50,20 @@ class BookingSystemTest {
     @InjectMocks
     BookingSystem bookingSystem;
 
-    private Room room;
-    private Room otherRoom;
+    private Room firstRoom;
+    private Room secondRoom;
+    private Room thirdRoom;
 
 
     @BeforeEach
     @DisplayName("Förbered testdata och mock-inställningar")
     void setUp() {
-        room = new Room(ROOM_ID, ROOM_NAME);
-        otherRoom = new Room(OTHER_ROOM_ID, OTHER_ROOM_NAME);
+        firstRoom = new Room(ROOM_ID, ROOM_NAME);
+        secondRoom = new Room(SECOND_ROOM_ID, SECOND_ROOM_NAME);
+        thirdRoom = new Room(THIRD_ROOM_ID, THIRD_ROOM_NAME);
 
         Mockito.lenient().when(timeProvider.getCurrentTime()).thenReturn(CURRENT_TIME);
-        Mockito.lenient().when(roomRepository.findById(ROOM_ID)).thenReturn(Optional.of(room));
+        Mockito.lenient().when(roomRepository.findById(ROOM_ID)).thenReturn(Optional.of(firstRoom));
     }
 
     @Nested
@@ -96,7 +102,7 @@ class BookingSystemTest {
             boolean result = bookingSystem.bookRoom(ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
 
             assertThat(result).isTrue();
-            verify(roomRepository).save(room);
+            verify(roomRepository).save(firstRoom);
         }
 
         @Test
@@ -137,7 +143,7 @@ class BookingSystemTest {
                     FUTURE_START_TIME,
                     FUTURE_END_TIME
             );
-            room.addBooking(existingBooking);
+            firstRoom.addBooking(existingBooking);
 
             boolean result = bookingSystem.bookRoom(ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
 
@@ -164,7 +170,7 @@ class BookingSystemTest {
             boolean result = bookingSystem.bookRoom(ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
 
             assertThat(result).isTrue();
-            verify(roomRepository).save(room);
+            verify(roomRepository).save(firstRoom);
             verify(notificationService).sendBookingConfirmation(any(Booking.class));
         }
 
@@ -174,7 +180,7 @@ class BookingSystemTest {
             boolean result = bookingSystem.bookRoom(ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
 
             assertThat(result).isTrue();
-            verify(roomRepository).save(room);
+            verify(roomRepository).save(firstRoom);
         }
 
         @Test
@@ -184,7 +190,7 @@ class BookingSystemTest {
 
             assertThat(result).isTrue();
 
-            verify(roomRepository).save(room);
+            verify(roomRepository).save(firstRoom);
             verify(notificationService).sendBookingConfirmation(any(Booking.class));
         }
 
@@ -203,7 +209,7 @@ class BookingSystemTest {
             bookingSystem.bookRoom(ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
 
             verify(notificationService).sendBookingConfirmation(any(Booking.class));
-            verify(roomRepository).save(room);
+            verify(roomRepository).save(firstRoom);
         }
 
         @Test
@@ -297,21 +303,21 @@ class BookingSystemTest {
         @Test
         @DisplayName("getAvailableRooms returnerar filtrerad lista")
         void getAvailableRooms_ReturnsFilteredList() {
-            otherRoom.addBooking(new Booking(
+            secondRoom.addBooking(new Booking(
                     "test-uuid-123",
-                    OTHER_ROOM_ID,
+                    SECOND_ROOM_ID,
                     FUTURE_START_TIME,
                     FUTURE_END_TIME
             ));
 
-            when(roomRepository.findAll()).thenReturn(Arrays.asList(room, otherRoom));
+            when(roomRepository.findAll()).thenReturn(Arrays.asList(firstRoom, secondRoom));
 
             List<Room> result = bookingSystem.getAvailableRooms(FUTURE_START_TIME, FUTURE_END_TIME);
 
             assertThat(result)
                     .hasSize(1)
-                    .containsExactly(room)
-                    .doesNotContain(otherRoom);
+                    .containsExactly(firstRoom)
+                    .doesNotContain(secondRoom);
         }
 
         @Test
@@ -327,22 +333,22 @@ class BookingSystemTest {
         @Test
         @DisplayName("getAvailableRooms med båda rummen lediga - returnerar båda")
         void getAvailableRooms_WithBothRoomsAvailable_ReturnsBoth() {
-            when(roomRepository.findAll()).thenReturn(Arrays.asList(room, otherRoom));
+            when(roomRepository.findAll()).thenReturn(Arrays.asList(firstRoom, secondRoom));
 
             List<Room> result = bookingSystem.getAvailableRooms(FUTURE_START_TIME, FUTURE_END_TIME);
 
             assertThat(result)
                     .hasSize(2)
-                    .containsExactlyInAnyOrder(room, otherRoom);
+                    .containsExactlyInAnyOrder(firstRoom, secondRoom);
         }
 
         @Test
         @DisplayName("getAvailableRooms med båda rummen upptagna - returnerar tom lista")
         void getAvailableRooms_WithBothRoomsBooked_ReturnsEmpty() {
-            room.addBooking(new Booking("b1", ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME));
-            otherRoom.addBooking(new Booking("b2", OTHER_ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME));
+            firstRoom.addBooking(new Booking("b1", ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME));
+            secondRoom.addBooking(new Booking("b2", SECOND_ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME));
 
-            when(roomRepository.findAll()).thenReturn(Arrays.asList(room, otherRoom));
+            when(roomRepository.findAll()).thenReturn(Arrays.asList(firstRoom, secondRoom));
 
             List<Room> result = bookingSystem.getAvailableRooms(FUTURE_START_TIME, FUTURE_END_TIME);
 
@@ -360,6 +366,24 @@ class BookingSystemTest {
             assertThatThrownBy(() -> bookingSystem.cancelBooking(null))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("Boknings-id kan inte vara null");
+        }
+
+        @Test
+        @DisplayName("Söker genom alla rum från repository men hittar inget matchande boknings-id - returnera false")
+        void cancelBooking_SearchesAllRoomsFromRepository_NoMatchingBookingId_ReturnsFalse() throws NotificationException {
+            List<Room> allRooms = List.of(firstRoom, secondRoom, thirdRoom);
+            when(roomRepository.findAll()).thenReturn(allRooms);
+
+            boolean result = bookingSystem.cancelBooking(NON_EXISTING_BOOKING_ID);
+
+            assertThat(result).as("Ska returnera false när bokningen inte finns").isFalse();
+            verify(roomRepository).findAll();
+            verify(roomRepository, never()).save(any(Room.class));
+            verify(notificationService, never()).sendCancellationConfirmation(any(Booking.class));
+
+            assertThat(firstRoom.hasBooking(NON_EXISTING_BOOKING_ID)).isFalse();
+            assertThat(secondRoom.hasBooking(NON_EXISTING_BOOKING_ID)).isFalse();
+            assertThat(thirdRoom.hasBooking(NON_EXISTING_BOOKING_ID)).isFalse();
         }
     }
 }
