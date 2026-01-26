@@ -1,5 +1,7 @@
 package com.example.payment;
 
+import java.util.Objects;
+
 public class PaymentProcessor {
 
     private final PaymentApiClient paymentApiClient;
@@ -9,12 +11,15 @@ public class PaymentProcessor {
     public PaymentProcessor(PaymentApiClient paymentApiClient,
                             PaymentRepository paymentRepository,
                             EmailSender emailSender) {
-        this.paymentApiClient = paymentApiClient;
-        this.paymentRepository = paymentRepository;
-        this.emailSender = emailSender;
+        this.paymentApiClient = Objects.requireNonNull(paymentApiClient, "paymentApiClient cannot be null");
+        this.paymentRepository = Objects.requireNonNull(paymentRepository, "paymentRepository cannot be null");
+        this.emailSender = Objects.requireNonNull(emailSender, "emailSender cannot be null");
     }
 
-    public boolean processPayment(double amount) {
+    public boolean processPayment(double amount, String email) {
+        if (amount <= 0) { throw new IllegalArgumentException("Amount must be positive");}
+        if (email == null || email.isBlank()) { throw new IllegalArgumentException("Email cannot be null or empty");
+        }
         PaymentApiResponse response = paymentApiClient.charge(amount);
 
         if (response.isSuccess()) {
@@ -26,7 +31,7 @@ public class PaymentProcessor {
             }
 
             try {
-                emailSender.sendPaymentConfirmation("user@example.com", amount);
+                emailSender.sendPaymentConfirmation(email, amount);
             } catch (EmailSendingException e) {
                 // Fortsätt
             }
