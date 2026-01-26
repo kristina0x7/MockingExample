@@ -18,7 +18,12 @@ public class PaymentProcessor {
         PaymentApiResponse response = paymentApiClient.charge(amount);
 
         if (response.isSuccess()) {
-            paymentRepository.savePayment(amount, PaymentStatus.SUCCESS);
+
+            try {
+                paymentRepository.savePayment(amount, PaymentStatus.SUCCESS);
+            } catch (PaymentPersistenceException e) {
+                // Fortsätt
+            }
 
             try {
                 emailSender.sendPaymentConfirmation("user@example.com", amount);
