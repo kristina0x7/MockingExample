@@ -1,7 +1,21 @@
 package com.example.payment;
 
 public class PaymentProcessor {
+
     private static final String API_KEY = "sk_test_123456";
+    private final PaymentApiClient paymentApiClient;
+    private final PaymentRepository paymentRepository;
+    private final EmailSender emailSender;
+
+    public PaymentProcessor(PaymentApiClient paymentApiClient,
+                            PaymentRepository paymentRepository,
+                            EmailSender emailSender) {
+        this.paymentApiClient = paymentApiClient;
+        this.paymentRepository = paymentRepository;
+        this.emailSender = emailSender;
+    }
+
+
 
     public boolean processPayment(double amount) {
         // Anropar extern betaltjänst direkt med statisk API-nyckel
