@@ -17,10 +17,15 @@ public class PaymentProcessor {
     public boolean processPayment(double amount) {
         PaymentApiResponse response = paymentApiClient.charge(amount);
 
-        if (response.success()) {
+        if (response.isSuccess()) {
             paymentRepository.savePayment(amount, PaymentStatus.SUCCESS);
-            emailSender.sendPaymentConfirmation("user@example.com", amount);
+
+            try {
+                emailSender.sendPaymentConfirmation("user@example.com", amount);
+            } catch (EmailSendingException e) {
+                // Fortsätt
+            }
         }
-        return response.success();
+        return response.isSuccess();
     }
 }
