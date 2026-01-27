@@ -21,13 +21,14 @@ public class PaymentProcessor {
         if (email == null || email.isBlank()) { throw new IllegalArgumentException("Email cannot be null or empty");}
 
         PaymentApiResponse response = paymentApiClient.charge(amount);
+        boolean success = response.isSuccess();
 
-        if (response.isSuccess()) {
+        if (success) {
 
             try {
-                paymentRepository.savePayment(amount, PaymentStatus.SUCCESS);
-            } catch (PaymentPersistenceException e) {
-                throw new PaymentPersistenceException("Failed to save payment", e);
+                paymentRepository.savePayment(amount, PaymentStatus.SAVEDPAYMENT);
+            } catch (PaymentDataAccessException e) {
+                throw new PaymentProcessingException("Failed to save payment", e);
             }
 
             try {
@@ -36,6 +37,6 @@ public class PaymentProcessor {
                 // Fortsätt
             }
         }
-        return response.isSuccess();
+        return success;
     }
 }
